@@ -102,17 +102,29 @@ $(document).ready(function () {
   });
 });
 
+// Fungsi helper untuk mencegah XSS (Escape HTML)
+function escapeHtml(text) {
+  var map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 // ----- BUKU UCAPAN ----- //
 var currentOffset = 0;
 var isLoading = false; // Guard agar tidak terjadi double fetch
 
 function loadUcapan(isNew = false) {
-  if (isLoading) return; // Jika sedang loading, jangan ambil data lagi
+  if (isLoading) return; 
   isLoading = true;
 
   if (isNew) {
     currentOffset = 0;
-    $("#daftar-ucapan").empty(); // Pastikan kontainer kosong total saat reset
+    $("#daftar-ucapan").empty(); 
   }
 
   $.ajax({
@@ -128,21 +140,23 @@ function loadUcapan(isNew = false) {
             item.kehadiran === "Hadir"
               ? "rgba(46, 204, 113, 0.4)"
               : "rgba(255, 255, 255, 0.2)";
+          
+          // Mencegah XSS dengan escapeHtml dan memperbaiki layout pesan meluber dengan CSS word-wrap
           html += `
-                    <div class="ucapan-card">
+                    <div class="ucapan-card" style="word-wrap: break-word; overflow-wrap: break-word; word-break: break-word;">
                         <div class="ucapan-header">
-                            <h4 class="ucapan-nama">${item.nama}</h4>
-                            <span class="ucapan-status" style="background: ${statusColor}">${item.kehadiran}</span>
+                            <h4 class="ucapan-nama" style="word-break: break-word;">${escapeHtml(item.nama)}</h4>
+                            <span class="ucapan-status" style="background: ${statusColor}">${escapeHtml(item.kehadiran)}</span>
                         </div>
-                        <p class="ucapan-pesan">"${item.pesan}"</p>
-                        <span class="ucapan-waktu"><i class="icon-clock"></i> ${item.created_at}</span>
+                        <p class="ucapan-pesan" style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;">"${escapeHtml(item.pesan)}"</p>
+                        <span class="ucapan-waktu"><i class="icon-clock"></i> ${escapeHtml(item.created_at)}</span>
                     </div>`;
         });
 
         if (isNew) {
-          $("#daftar-ucapan").html(html); // Gunakan .html() untuk menimpa jika data baru
+          $("#daftar-ucapan").html(html); 
         } else {
-          $("#daftar-ucapan").append(html); // Gunakan .append() hanya untuk load more
+          $("#daftar-ucapan").append(html); 
         }
 
         currentOffset += data.length;
@@ -161,7 +175,7 @@ function loadUcapan(isNew = false) {
       }
     },
     complete: function () {
-      isLoading = false; // Buka kembali kunci loading
+      isLoading = false; 
     },
   });
 }
